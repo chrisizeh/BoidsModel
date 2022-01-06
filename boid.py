@@ -2,14 +2,9 @@ import numpy as np
 import copy
 
 class Boid:
-	def __init__(self, vmax):
-		self.vmax = vmax
+	def __init__(self, area):
 		self.velocity = np.zeros(3)
-		self.position = np.zeros(3)
-		# self.position = np.random.uniform(low=-1.0, high=1.0, size=3)
-
-	def set_position(self, pos):
-		self.position = np.array(copy.deepcopy(pos))
+		self.position = np.random.uniform(low=-area, high=area, size=3)
 
 	def __str__(self):
 		return "Position: {}, Velocity: {}".format(self.position, self.velocity)
