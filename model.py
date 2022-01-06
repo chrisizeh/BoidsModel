@@ -9,6 +9,7 @@ import copy
 
 from boid import Boid
 
+
 class BoidModel:
 	def __init__(self, count, d_neighbour, d_crash, vmax, l, area=1):
 		np.random.seed(19680801)
@@ -69,7 +70,7 @@ class BoidModel:
 		self.boids = new_boids
 
 
-	def animate(self):
+	def animate(self, save=False):
 		self.scats = []
 
 		def draw_update(stuff):
@@ -82,23 +83,28 @@ class BoidModel:
 
 		fig = plt.figure()
 		ax = fig.add_subplot(111, projection='3d')
-		ax.set_xlim([-self.area * 1.1, self.area * 1.1])
-		ax.set_ylim([-self.area * 1.1, self.area * 1.1])
-		ax.set_zlim([-self.area * 1.1, self.area * 1.1])
+		ax.set_xlim([-self.area * 3, self.area * 3])
+		ax.set_ylim([-self.area * 3, self.area * 3])
+		ax.set_zlim([-self.area * 3, self.area * 3])
 		pos = np.array([b.position for b in self.boids])
-		self.scats.append(ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2]))
+		self.scats.append(ax.scatter(pos[:, 0], pos[: , 1], pos[:, 2]))
 
-		ani = animation.FuncAnimation(fig, draw_update, 1, fargs=(), interval=1, blit=False)
-		plt.show()
+		ani = animation.FuncAnimation(fig, draw_update, fargs=(), interval=60, blit=False)
+
+		if(not save):
+			plt.show()
+		else:
+			writergif = animation.PillowWriter(fps=15) 
+			ani.save('animation.gif', writer=writergif)
 
 
 	def draw(self):
 		pos = np.array([b.position for b in self.boids])
 		fig = plt.figure()
 		ax = fig.add_subplot(111, projection='3d')
-		ax.set_xlim([-self.area * 1.1, self.area * 1.1])
-		ax.set_ylim([-self.area * 1.1, self.area * 1.1])
-		ax.set_zlim([-self.area * 1.1, self.area * 1.1])
+		ax.set_xlim([-self.area * 3, self.area * 3])
+		ax.set_ylim([-self.area * 3, self.area * 3])
+		ax.set_zlim([-self.area * 3, self.area * 3])
 
 		ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2])
 		plt.show()
