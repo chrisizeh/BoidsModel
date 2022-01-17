@@ -2,6 +2,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from matplotlib import pyplot as plt
 from matplotlib import animation
+from matplotlib import colors
+import seaborn as sns
 
 import numpy as np
 import copy
@@ -13,8 +15,9 @@ from boid import Boid
 class BoidModel:
 	def __init__(self, count, d_neighbour, d_crash, vmax, l, area=1):
 		np.random.seed(19680801)
+		self.bound = 0.3
 
-		self.boids = np.array([Boid(area) for i in range(count)])
+		self.boids = np.array([Boid(area, d_neighbour, d_crash, vmax, l) for i in range(count)])
 
 		self.area = area
 		self.count = count
@@ -27,45 +30,12 @@ class BoidModel:
 		return str(self.boids)
 
 
+	#  Move Update to Boid itself with parameter boids of interest
 	def update(self):
 		new_boids = copy.deepcopy(self.boids)
 
 		for i in range(self.count):
-			w = np.zeros(shape=(4, 3))
-			neighbour = 0
-			crash = 0
-
-			for j, boid in zip(range(self.count), self.boids):
-				diff = new_boids[i].position - boid.position
-				dist = np.linalg.norm(diff)
-
-				if dist < self.d_neighbour:
-
-					neighbour += 1
-					w[0] += boid.position
-					w[1] += boid.velocity
-
-					if dist < self.d_crash:
-						crash += 1
-						w[2] += diff
-
-			if np.max(np.abs(new_boids[i].position)) > self.area:
-				w[3] = -new_boids[i].position
-
-			if(neighbour > 0):
-				w[0] /= neighbour
-				w[1] /= neighbour
-
-				if(crash > 0):
-					w[2] /= crash
-
-				w[0] -= new_boids[i].position
-
-			new_boids[i].velocity = new_boids[i].velocity * self.l[0] + w[0] * self.l[1] + w[1] * self.l[2] + w[2] * self.l[3] + w[3] * self.l[4]
-			if np.linalg.norm(new_boids[i].velocity) > self.vmax:
-				new_boids[i].velocity = self.vmax * (new_boids[i].velocity / np.linalg.norm(new_boids[i].velocity))
-
-			new_boids[i].position = new_boids[i].position + new_boids[i].velocity
+			new_boids[i].update(self.boids)
 
 		self.boids = new_boids
 
@@ -79,34 +49,59 @@ class BoidModel:
 			self.scats = []
 			self.update()
 			pos = np.array([b.position for b in self.boids])
-			self.scats.append(ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2]))
+			vel = np.array([b.velocity for b in self.boids])
+
+			# Fix this
+			self.scats.append(ax.scatter(pos[:, 0], pos[: , 1], pos[:, 2], c=np.linalg.norm(vel, axis=1), vmin=0, vmax=self.vmax, depthshade=True, cmap='winter'))
+
+			# import matplotlib.markers as mmarkers
+			# print(np.arctan2(vel[:, 0], vel[:, 1]))
+			# for i in np.arctan2(vel[:, 0], vel[:, 1]):
+			# 	print(i)
+			# m = [(3, 0, v  * 180 / np.pi) for v in np.arctan2(vel[:, 0], vel[:, 1])]
+			# paths = []
+			# for marker in m:
+			# 	if isinstance(marker, mmarkers.MarkerStyle):
+			# 		marker_obj = marker
+			# 	else:
+			# 		marker_obj = mmarkers.MarkerStyle(marker)
+			# 	path = marker_obj.get_path().transformed(marker_obj.get_transform())
+			# 	paths.append(path)
+			# self.scats[-1].set_paths(paths)
+
 
 		fig = plt.figure()
 		ax = fig.add_subplot(111, projection='3d')
-		ax.set_xlim([-self.area * 3, self.area * 3])
-		ax.set_ylim([-self.area * 3, self.area * 3])
-		ax.set_zlim([-self.area * 3, self.area * 3])
+
+		ax.set_xlim([-self.bound, self.bound])
+		ax.set_ylim([-self.bound, self.bound])
+		ax.set_zlim([-self.bound, self.bound])
+		
 		pos = np.array([b.position for b in self.boids])
-		self.scats.append(ax.scatter(pos[:, 0], pos[: , 1], pos[:, 2]))
+		vel = np.array([b.velocity for b in self.boids])
+		self.scats.append(ax.scatter(pos[:, 0], pos[: , 1], pos[:, 2], c=np.linalg.norm(vel, axis=1), vmin=0, vmax=self.vmax, depthshade=True, cmap='winter'))
+		plt.colorbar(self.scats[0])
 
 		ani = animation.FuncAnimation(fig, draw_update, fargs=(), interval=60, blit=False)
 
 		if(not save):
 			plt.show()
-		else:
+		else: 
 			writergif = animation.PillowWriter(fps=15) 
 			ani.save('animation.gif', writer=writergif)
 
 
 	def draw(self):
 		pos = np.array([b.position for b in self.boids])
+		vel = np.array([b.velocity for b in self.boids])
 		fig = plt.figure()
-		ax = fig.add_subplot(111, projection='3d')
-		ax.set_xlim([-self.area * 3, self.area * 3])
-		ax.set_ylim([-self.area * 3, self.area * 3])
-		ax.set_zlim([-self.area * 3, self.area * 3])
 
-		ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2])
+		ax = fig.add_subplot(111, projection='3d')
+		ax.set_xlim([-self.bound, self.bound])
+		ax.set_ylim([-self.bound, self.bound])
+		ax.set_zlim([-self.bound, self.bound])
+		q = ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2], c=np.linalg.norm(vel, axis=1), depthshade=True, cmap='winter')
+		plt.colorbar(q)
 		plt.show()
 
 
