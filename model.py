@@ -3,6 +3,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
 from matplotlib import animation
 from matplotlib import colors
+import matplotlib.cm as cm
+from matplotlib.colors import Normalize
 
 from bisect import bisect_right
 
@@ -43,7 +45,7 @@ class BoidModel:
 					self.boids_grid[x, y, z] = np.empty(0)
 
 		for i in range(self.count):
-			boid = Boid(i, self.area, self.d_neighbour, self.d_crash, self.vmax, self.l)
+			boid = Boid(i, self.area, self.d_neighbour, self.d_crash, np.random.uniform(low=0, high=2*self.vmax, size=1), self.l)
 
 			x_val = bisect_right(self.grid_borders, boid.position[0], lo=0, hi=self.num_grids-1) - 1
 			y_val = bisect_right(self.grid_borders, boid.position[1], lo=0, hi=self.num_grids-1) - 1
@@ -91,6 +93,8 @@ class BoidModel:
 
 	def animate(self, save=False, name="animation", naiv=False):
 		self.scats = []
+		norm = Normalize()
+		colormap = cm.winter
 
 		def draw_update(stuff):
 
@@ -103,31 +107,18 @@ class BoidModel:
 			else:
 				self.update()
 
-			pos = []
-			vel = []
 			pos = np.array([b.position for b in self.boids.values()])
 			vel = np.array([b.velocity for b in self.boids.values()])
+			vel = np.round(vel * 3, 3)
+			
+			zero_index = np.argwhere(np.sum(vel, axis=1) == 0).flatten()
+			pos = np.delete(pos, zero_index, axis=0)
+			vel = np.delete(vel, zero_index, axis=0)
 
-			pos = np.array(pos)
-			vel = np.array(vel)
+			colors = np.linalg.norm(pos[:, :2] + 1, axis=1)
+			colors = np.append(colors, np.repeat(colors, 2))
 
-			# Fix this
-			self.scats.append(ax.scatter(pos[:, 0], pos[: , 1], pos[:, 2], c=np.linalg.norm(vel, axis=1), vmin=0, vmax=self.vmax, depthshade=True, cmap='winter'))
-
-			# import matplotlib.markers as mmarkers
-			# print(np.arctan2(vel[:, 0], vel[:, 1]))
-			# for i in np.arctan2(vel[:, 0], vel[:, 1]):
-			# 	print(i)
-			# m = [(3, 0, v  * 180 / np.pi) for v in np.arctan2(vel[:, 0], vel[:, 1])]
-			# paths = []
-			# for marker in m:
-			# 	if isinstance(marker, mmarkers.MarkerStyle):
-			# 		marker_obj = marker
-			# 	else:
-			# 		marker_obj = mmarkers.MarkerStyle(marker)
-			# 	path = marker_obj.get_path().transformed(marker_obj.get_transform())
-			# 	paths.append(path)
-			# self.scats[-1].set_paths(paths)
+			self.scats.append(ax.quiver(pos[:, 0], pos[: , 1], pos[:, 2], vel[:, 0], vel[: , 1], vel[:, 2], color=colormap(norm(colors))))
 
 
 		fig = plt.figure()
@@ -139,9 +130,17 @@ class BoidModel:
 		
 		pos = np.array([b.position for b in self.boids.values()])
 		vel = np.array([b.velocity for b in self.boids.values()])
+		vel = np.round(vel * 3, 3)
 
-		self.scats.append(ax.scatter(pos[:, 0], pos[: , 1], pos[:, 2], c=np.linalg.norm(vel, axis=1), vmin=0, vmax=self.vmax, depthshade=True, cmap='winter'))
-		plt.colorbar(self.scats[0])
+		zero_index = np.argwhere(np.sum(vel, axis=1) == 0).flatten()
+		pos = np.delete(pos, zero_index, axis=0)
+		vel = np.delete(vel, zero_index, axis=0)
+
+		colors = np.linalg.norm(pos[:, :2] + 1, axis=1)
+		norm.autoscale(colors)
+		colors = np.append(colors, np.repeat(colors, 2))
+
+		self.scats.append(ax.quiver(pos[:, 0], pos[: , 1], pos[:, 2], vel[:, 0], vel[: , 1], vel[:, 2], color=colormap(norm(colors))))
 
 		ani = animation.FuncAnimation(fig, draw_update, fargs=(), interval=60, blit=False)
 
@@ -153,17 +152,23 @@ class BoidModel:
 
 
 	def draw(self):
-		pos = np.array([b.position for b in self.boids])
-		vel = np.array([b.velocity for b in self.boids])
 		fig = plt.figure()
+		norm = Normalize()
+		colormap = cm.winter
 
 		ax = fig.add_subplot(111, projection='3d')
 		ax.set_xlim([-self.bound, self.bound])
 		ax.set_ylim([-self.bound, self.bound])
 		ax.set_zlim([-self.bound, self.bound])
-		# q = ax.scatter(pos[:, 0], pos[:, 1], pos[:, 2], c=np.linalg.norm(vel, axis=1), depthshade=True, cmap='winter')
-		ax.plot3D(xs=[pos[:, 0], pos[:, 0] + vel[:, 0]], ys=[pos[:, 1], pos[:, 1] + vel[:, 1]], zs=[pos[:, 2], pos[:, 2] + vel[:, 2]])
-		# plt.colorbar(q)
+
+		pos = np.array([b.position for b in self.boids.values()])
+		vel = np.array([b.velocity for b in self.boids.values()])
+		vel = np.round(vel * 3, 3)
+
+		colors = np.linalg.norm(pos[:, :2] + 1, axis=1)
+		norm.autoscale(colors)
+		colors = np.append(colors, np.repeat(colors, 2))
+		q = ax.quiver(pos[:, 0], pos[: , 1], pos[:, 2], vel[:, 0], vel[: , 1], vel[:, 2], color=colormap(norm(colors)))
 		plt.show()
 
 
