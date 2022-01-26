@@ -6,7 +6,14 @@ import time
 import copy
 import numpy as np
 
-b = BoidModel(500, 0.2, 0.05, 0.03, [0.31, 0.001, 1.2, 2, 0.01], area=1)
+
+N=500
+observationradius=0.2
+crashradius=0.05
+vmax=0.01
+l=[0.31, 0.001, 1.2, 2, 0.01]
+
+b = BoidModel(N, observationradius, crashradius, vmax, l, area=1)
 
 start_time = time.time()
 b.animate(save=True, naiv=True, name="naiv_animation")
