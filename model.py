@@ -142,13 +142,14 @@ class BoidModel:
 
 		self.scats.append(ax.quiver(pos[:, 0], pos[: , 1], pos[:, 2], vel[:, 0], vel[: , 1], vel[:, 2], color=colormap(norm(colors))))
 
-		ani = animation.FuncAnimation(fig, draw_update, fargs=(), interval=60, blit=False)
+		ani = animation.FuncAnimation(fig, draw_update, fargs=(), frames=500, blit=False)
 
 		if(not save):
 			plt.show()
 		else: 
-			writergif = animation.PillowWriter(fps=15) 
-			ani.save(name + '.gif', writer=writergif)
+			writergif = animation.PillowWriter(fps=25)
+			ani.save(name + "_N-" + str(self.count) +  "_vmax-" + str(self.vmax) + "_observ-" + str(self.d_neighbour) + "_crash-" + str(self.d_crash) + "_l-" + str(self.l) +
+					 '.gif', writer=writergif)
 
 
 	def draw(self):
