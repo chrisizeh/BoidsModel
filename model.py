@@ -28,7 +28,7 @@ class BoidModel:
 		self.l = l
 
 		# self.num_grids = 4
-		self.num_grids = int((2 * area) / d_neighbour)
+		self.num_grids = int((4 * area) / d_neighbour)
 		self.grid_borders = np.linspace(-2 * self.area, 2 * self.area, self.num_grids, endpoint=False)
 
 		self.boids = {}
@@ -45,7 +45,7 @@ class BoidModel:
 					self.boids_grid[x, y, z] = np.empty(0)
 
 		for i in range(self.count):
-			boid = Boid(i, self.area, self.d_neighbour, self.d_crash, np.random.uniform(low=0, high=2*self.vmax, size=1), self.l)
+			boid = Boid(i, self.area, self.d_neighbour, self.d_crash, self.vmax, self.l)
 
 			x_val = bisect_right(self.grid_borders, boid.position[0], lo=0, hi=self.num_grids-1) - 1
 			y_val = bisect_right(self.grid_borders, boid.position[1], lo=0, hi=self.num_grids-1) - 1
@@ -91,7 +91,7 @@ class BoidModel:
 		self.boids = new_boids
 
 
-	def animate(self, save=False, name="animation", naiv=False):
+	def animate(self, save=False, name='animation', naiv=False):
 		self.scats = []
 		norm = Normalize()
 		colormap = cm.winter
@@ -148,7 +148,7 @@ class BoidModel:
 			plt.show()
 		else: 
 			writergif = animation.PillowWriter(fps=25)
-			ani.save(name + "_N-" + str(self.count) +  "_vmax-" + str(self.vmax) + "_observ-" + str(self.d_neighbour) + "_crash-" + str(self.d_crash) + "_l-" + str(self.l) +
+			ani.save(name + '_N-' + str(self.count) +  '_vmax-' + str(self.vmax) + '_observ-' + str(self.d_neighbour) + '_crash-' + str(self.d_crash) + '_l-' + str(self.l) +
 					 '.gif', writer=writergif)
 
 
